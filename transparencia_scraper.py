@@ -211,13 +211,12 @@ class Transparencia_Scraper(Html_utils, File_utils):
             c = c.group(1)
         return c, params, content
     
-    def check_downloaded_file(self, schema_name, filename, params):
+    def check_downloaded_file(self, filename, params):
         """  Recebe o nome da base, nome do arquivo e a partição da base para que seja 
              conferido se o download do arquivo já foi feito ou não.
              Note:
                 A classe deve ser derivada e o método sobrescrito.
              Args:
-                schema_name (str): nome da base relativa ao arquivo
                 filename (str): nome do arquivo
                 params (dict): parâmetros com informação do arquivo
              Returns:
@@ -240,7 +239,7 @@ class Transparencia_Scraper(Html_utils, File_utils):
             Returns:
                 True caso o arquivo tenha sido baixado localmente e False caso contrário
         """
-        if self.check_downloaded_file(c, zip_filename, params):
+        if self.check_downloaded_file(zip_filename, params):
             return False
         self.download_file_from_url(url_file, params, zip_filename)
         return True
@@ -280,7 +279,7 @@ class Transparencia_Scraper(Html_utils, File_utils):
                 process_copa (boolean): True caso se deseje que processe os arquivos da Copa. 
                     Default False uma vez que os dados não são atualizados e devem ser processados apenas uma única vez.
         """
-        for l in self.__get_links()[::-1]:
+        for l in self.__get_links():
             schema_url = (self.url_main + l['href'])
 
             schema_name, params, content = self.__get_schema_info(schema_url, l['href'])
@@ -309,13 +308,9 @@ class Transparencia_Scraper(Html_utils, File_utils):
                 if self.log:
                     self.log.warning('Encontrados {} arquivos'.format(len(files_params)))
 
-                index = 0
                 for f in files_params:
                     params, zip_filename = self.__get_file_info(schema_name, f)
                     res = self.process_file(schema_name, params, zip_filename, self.url_download)
-                    index += 1
-                    if index == 3:
-                        break
                 
             folder = os.path.dirname(zip_filename)
             if os.path.exists(folder) and not os.listdir(folder):
