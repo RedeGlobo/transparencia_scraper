@@ -181,7 +181,7 @@ class Diarias_Scraper(Html_utils):
 
         orgs = self.get_org_sup(self.url + 'resultado?consulta=rapida&periodoInicio=14/11/2017&periodoFim=15/11/2017&&fase=PAG&codigoOS=63000&codigoFavorecido=')
         if not orgs:
-            return
+            return False
                     
         # Realizo as consultas em si            
         for d in zip(dates_in, dates_out):
@@ -221,7 +221,7 @@ class Diarias_Scraper(Html_utils):
                         else:
                             if self.log:
                                 self.log.error('CAPTCHA')
-                            return
+                            return False
                     results = self.process_rows(header, result_rows, org)
                     if self.log:
                         self.log.debug('PAGE = {} de {} - {} itens'.format(page, num_pages, len(results)))
@@ -229,4 +229,5 @@ class Diarias_Scraper(Html_utils):
 
                     # salvando os resultados
                     self.save_results(org, d[0].strftime('%Y'), d[0].strftime('%m'), page, header, results)
+            return True
                 
