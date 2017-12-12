@@ -23,7 +23,7 @@ class Diarias_Scraper(Html_utils):
     def __init__(self, log=None):
         self.log = log
         self.url = 'http://www.portaltransparencia.gov.br/despesasdiarias/'
-        self.sleep_time = 10
+        self.sleep_time = 1
         
     @staticmethod
     def load_time(date_in, date_out):
@@ -78,16 +78,20 @@ class Diarias_Scraper(Html_utils):
             self.log.debug('Encontrado {} órgãos: {}'.format(len(orgs), ', '.join(orgs)))
         return orgs
 
-    def check_downloaded_file(self, filename):
+    def check_downloaded_file(self, org, year, month, page):
         """  Recebe o nome do arquivo para que seja 
              conferido se o download do arquivo já foi feito ou não.
              Note:
                 A classe deve ser derivada e o método sobrescrito.
              Args:
-                filename (str): nome do arquivo
+                org (str): nome do órgao superior consultado
+                year (int): ano ao qual o dado se refere
+                month(int): mês ao qual o dado se refere
+                page (str): número da página processada em cada busca
              Returns:
                  True se o arquivo já foi processado anteriormente, caso contrário, False.
         """
+        filename = '{}_{}{}_{}.csv'.format(org, year, str(month).zfill(2), page)
         from pathlib import Path
         if Path(filename).is_file():
             return True
@@ -154,13 +158,13 @@ class Diarias_Scraper(Html_utils):
             results.append(row)
         return results
     
-    def save_results(self, org, year, month, header, results):
+    def save_results(self, org, year, month, page, header, results):
         """
             Cria um dataframe com os resultados e salva localmente em CSV.
             Returns:
                 Nome do arquivo salvo; Caso o resultado da tabela seja vazio, retorna Nulo.
         """
-        filename = '{}_{}{}.csv'.format(org, year, str(month).zfill(2))
+        filename = '{}_{}{}_{}.csv'.format(org, year, str(month).zfill(2), page)
         df = pd.DataFrame(results, columns=header.extend(['url']))
 
         if df[header[0]].iloc[0].find('Nenhum documento obedece aos critérios da consulta') != -1:
@@ -187,9 +191,6 @@ class Diarias_Scraper(Html_utils):
                 if self.log:
                     self.log.warning("%%%%%%%%%%% Processando orgao superior #{} - {} %%%%%%%%%%%".format(index, org))
 
-                if self.check_downloaded_file(org, d[0].strftime('%Y'), d[0].strftime('%m')):
-                    continue
-
                 # fazendo a consulta para obter os dados                
                 url = self.url + 'resultado?consulta=rapida&periodoInicio={}&periodoFim={}&&fase=PAG&codigoOS={}&codigoFavorecido='.format(d[0].strftime('%d/%m/%Y'), d[1].strftime('%d/%m/%Y'), org)
                 if self.log:
@@ -206,6 +207,8 @@ class Diarias_Scraper(Html_utils):
                 # iterando entre as páginas para carregar todos os resultados
                 results = []
                 for page in range(1, num_pages+1):
+                    if self.check_downloaded_file(org, d[0].strftime('%Y'), d[0].strftime('%m'), page):
+                        continue
                     url_page = url + '&pagina={}'.format(page)
                     if page != 1:
                         soup = self.get_html(url_page) 
@@ -219,11 +222,11 @@ class Diarias_Scraper(Html_utils):
                             if self.log:
                                 self.log.error('CAPTCHA')
                             return
-                    partial_results = self.process_rows(header, result_rows, org)
+                    results = self.process_rows(header, result_rows, org)
                     if self.log:
-                        self.log.debug('PAGE = {} de {} - {} itens'.format(page, num_pages, len(partial_results)))
-                    results.extend(partial_results)
+                        self.log.debug('PAGE = {} de {} - {} itens'.format(page, num_pages, len(results)))
+                    #results.extend(partial_results)
 
-                # salvando os resultados
-                self.save_results(org, d[0].strftime('%Y'), d[0].strftime('%m'), header, results)
+                    # salvando os resultados
+                    self.save_results(org, d[0].strftime('%Y'), d[0].strftime('%m'), page, header, results)
                 
