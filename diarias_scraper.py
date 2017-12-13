@@ -1,8 +1,13 @@
-# coding: utf-8
 #!/usr/bin/env python
+# coding: utf-8
+
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license
+# Copyright (c) 2017 Rede Globo
+
 
 __author__ = "Priscilla Lusie"
-__version__ = "1.1"
+__version__ = "1.2"
 
 import os
 import pandas as pd
@@ -20,10 +25,16 @@ class Diarias_Scraper(Html_utils):
         Gera uma tabela com os resultados disponibilizados pelo site de forma paginada.
         E salva o arquivo localmente.
     """
-    def __init__(self, log=None):
+    def __init__(self, log=None, sleep_time=30):
+    """
+       Inicializa a classe com parâmetros importantes
+       Args:
+           log (object): instância do log a registrar mensagens de error, debug e warning
+           sleep_time (int): tempo de sleep entre os requests feitos à página para não sobrecarregar o servidor
+    """
         self.log = log
         self.url = 'http://www.portaltransparencia.gov.br/despesasdiarias/'
-        self.sleep_time = 1
+        self.sleep_time = sleep_time
         
     @staticmethod
     def load_time(date_in, date_out):
@@ -76,7 +87,7 @@ class Diarias_Scraper(Html_utils):
             orgs.append(t['value'])
         if self.log:
             self.log.debug('Encontrado {} órgãos: {}'.format(len(orgs), ', '.join(orgs)))
-        return orgs
+        return orgs[::-1]
 
     def check_downloaded_file(self, org, year, month, page):
         """  Recebe o nome do arquivo para que seja 
