@@ -7,7 +7,7 @@
 
 
 __author__ = "Priscilla Lusie"
-__version__ = "1.3"
+__version__ = "1.4"
 
 import os
 import pandas as pd
@@ -26,12 +26,12 @@ class Diarias_Scraper(Html_utils):
         E salva o arquivo localmente.
     """
     def __init__(self, log=None, sleep_time=30):
-    """
-       Inicializa a classe com parâmetros importantes
-       Args:
-           log (object): instância do log a registrar mensagens de error, debug e warning
-           sleep_time (int): tempo de sleep entre os requests feitos à página para não sobrecarregar o servidor
-    """
+        """
+            Inicializa a classe com parâmetros importantes
+            Args:
+               log (object): instância do log a registrar mensagens de error, debug e warning
+               sleep_time (int): tempo de sleep entre os requests feitos à página para não sobrecarregar o servidor
+        """
         self.log = log
         self.url = 'http://www.portaltransparencia.gov.br/despesasdiarias/'
         self.sleep_time = sleep_time
